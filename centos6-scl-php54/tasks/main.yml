@@ -1,4 +1,7 @@
 ---
+# SCLをインストール
+- name: install SCL
+  yum: name=centos-release-SCL state=present
 # php54のインストール
 - name: install php54
   yum: name={{ item }} state=present
@@ -13,12 +16,12 @@
   - php54-php-mysqlnd
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
-  copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini
+  copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini owner=root group=root
 # ここまで https://gist.github.com/debility/8838906 を反映
 - name: config PHP 2
-  copy: src=timezone.ini dest=/opt/rh/php54/root/etc/php.d/timezone.ini
+  copy: src=timezone.ini dest=/opt/rh/php54/root/etc/php.d/timezone.ini owner=root group=root
 - name: create /etc/profile.d/php54.sh
-  copy: src=php54.sh dest=/etc/profile.d/php54.sh
+  copy: src=php54.sh dest=/etc/profile.d/php54.sh owner=root group=root
 # OPcacheのインストール
 - name: download PHP OPcache source
   get_url: url="https://github.com/zendtech/ZendOptimizerPlus/archive/master.zip" dest=/root/ZendOptimizerPlus-master.zip
@@ -46,6 +49,6 @@
   command: chdir=/root/ZendOptimizerPlus-master make install
   when: result|failed
 - name: config PHP OPcache
-  copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini
+  copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini owner=root group=root
 - name: restart httpd
   service: name=httpd state=restarted
