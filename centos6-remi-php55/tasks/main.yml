@@ -25,5 +25,7 @@
   yum: name={{ item }} enablerepo=remi-php55,remi state=present
   with_items:
   - php-opcache
+- name: config OPCache
+  lineinfile: dest=/etc/php.d/opcache.ini regexp="opcache\.enable_cli=" line="opcache.enable_cli=1"
 - name: restart httpd
   service: name=httpd state=restarted
