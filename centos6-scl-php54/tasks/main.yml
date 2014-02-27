@@ -1,0 +1,51 @@
+---
+# php54のインストール
+- name: install php54
+  yum: name={{ item }} state=present
+  with_items:
+  - php54-php
+  - php54-php-pear
+  - php54-php-devel
+  - php54-php-xml
+  - php54-php-mbstring
+  - php54-php-pgsql
+  - php54-php-gd
+  - php54-php-mysqlnd
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP 1
+  copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini
+# ここまで https://gist.github.com/debility/8838906 を反映
+- name: config PHP 2
+  copy: src=timezone.ini dest=/opt/rh/php54/root/etc/php.d/timezone.ini
+- name: create /etc/profile.d/php54.sh
+  copy: src=php54.sh dest=/etc/profile.d/php54.sh
+# OPcacheのインストール
+- name: download PHP OPcache source
+  get_url: url="https://github.com/zendtech/ZendOptimizerPlus/archive/master.zip" dest=/root/ZendOptimizerPlus-master.zip
+- name: check PHP OPcache module
+  command: test -f "/opt/rh/php54/root/usr/lib64/php/modules/opcache.so"
+  register: result
+  ignore_errors: true
+- name: unzip PHP OPcache source 1
+  command: rm -rf /root/ZendOptimizerPlus-master
+  ignore_errors: true
+  when: result|failed
+- name: unzip PHP OPcache source 2
+  command: unzip /root/ZendOptimizerPlus-master.zip -d /root
+  when: result|failed
+- name: phpize PHP OPcache
+  command: chdir=/root/ZendOptimizerPlus-master /opt/rh/php54/root/usr/bin/phpize
+  when: result|failed
+- name: configure PHP OPcache
+  command: chdir=/root/ZendOptimizerPlus-master ./configure --with-php-config=/opt/rh/php54/root/usr/bin/php-config
+  when: result|failed
+- name: make PHP OPcache
+  command: chdir=/root/ZendOptimizerPlus-master make
+  when: result|failed
+- name: make install PHP OPcache
+  command: chdir=/root/ZendOptimizerPlus-master make install
+  when: result|failed
+- name: config PHP OPcache
+  copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini
+- name: restart httpd
+  service: name=httpd state=restarted
