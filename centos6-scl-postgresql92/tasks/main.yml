@@ -16,8 +16,10 @@
 - name: make directory for dbroot 3
   file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
 # PGDATAとPGLOGの設定
-- name: create /etc/sysconfig/pgsql/postgresql
-  template: src=postgresql.j2 dest=/etc/sysconfig/pgsql/postgresql owner=root group=root
+- name: make directory for /opt/rh/postgresql92/root/etc/sysconfig/pgsql
+  file: path=/opt/rh/postgresql92/root/etc/sysconfig/pgsql state=directory owner=root group=root
+- name: create /opt/rh/postgresql92/root/etc/sysconfig/pgsql/postgresql
+  template: src=postgresql.j2 dest=/opt/rh/postgresql92/root/etc/sysconfig/pgsql/postgresql owner=root group=root
 # 自動起動の設定
 - name: enable postgresql92
   service: name=postgresql92-postgresql enabled=yes

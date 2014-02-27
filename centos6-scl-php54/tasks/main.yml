@@ -25,6 +25,7 @@
 # OPcacheのインストール
 - name: install build-tools
   yum: name={{ item }} state=present
+  with_items:
   - gcc
   - make
 - name: download PHP OPcache source
