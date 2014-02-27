@@ -1,0 +1,5 @@
+---
+# DBのデータディレクトリ
+dbroot: /opt/rh/postgresql92/root/var/lib/pgsql
+# DBに接続できるネットワーク範囲
+permite_network: 10.0.0.0/8
