@@ -23,6 +23,10 @@
 - name: create /etc/profile.d/php54.sh
   copy: src=php54.sh dest=/etc/profile.d/php54.sh owner=root group=root
 # OPcacheのインストール
+- name: install build-tools
+  yum: name={{ item }} state=present
+  - gcc
+  - make
 - name: download PHP OPcache source
   get_url: url="https://github.com/zendtech/ZendOptimizerPlus/archive/master.zip" dest=/root/ZendOptimizerPlus-master.zip
 - name: check PHP OPcache module
