@@ -1,0 +1,47 @@
+---
+# PostgreSQL9.3のリポジトリをインストール
+- name: install PostgreSQL9.3 repository
+  yum: name=http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm state=present
+- name: disable PostgreSQL9.3 repository
+  raw: sed -i -e 's/^enabled=1/enabled=0/g' /etc/yum.repos.d/pgdg-93-centos.repo
+# postgresql93のインストール
+- name: install postgresql93
+  yum: name={{ item }} enablerepo=pgdg93 state=latest
+  with_items:
+  - postgresql93-server
+  - postgresql93-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+# PGDATAとPGLOGの設定
+- name: create /etc/sysconfig/pgsql/postgresql
+  template: src=postgresql.j2 dest=/etc/sysconfig/pgsql/postgresql owner=root group=root
+# 自動起動の設定
+- name: enable postgresql93
+  service: name=postgresql-9.3 enabled=yes
+# 設定済みかの確認
+- name: check postgresql.conf
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
+  register: result
+  ignore_errors: true
+# 初期化
+- name: initdb
+  command: service postgresql-9.3 initdb -E UNICODE --no-locale -D {{ dbroot }}/data
+  when: result|failed
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf
+  when: result|failed
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
+  when: result|failed
+# サービス起動
+- name: start postgresql93
+  service: name=postgresql-9.3 state=started
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: /usr/bin/psql -U postgres -c "ALTER USER postgres with unencrypted password 'postgres';"
+  when: result|failed
