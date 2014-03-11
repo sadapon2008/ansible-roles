@@ -1,0 +1,20 @@
+---
+# SCLをインストール
+- name: install SCL
+  yum: name=centos-release-SCL state=present
+# moduleに必要なパッケージをインストール
+- name: install for ansible modules
+  yum: name={{ item }} state=present
+  with_items:
+  - python-iniparse
+  - MySQL-python
+# MySQL5.5のインストール
+- name: install MySQL
+  yum: name={{ item }} state=present
+  with_items:
+  - mysql55
+- name: copy my.cnf
+  copy: src=my.cnf dest=/etc/my.cnf owner=root group=root
+  notify: restart mysql55
+- name: start and enable MySQL
+  service: name=mysql55-mysqld state=started enabled=yes
