@@ -38,5 +38,5 @@
   when: result|failed
 # ネットワークのアクセス制限を設定する
 - name: config permit network
-  command: echo "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" | /opt/rh/mysql55/root/usr/bin/mysql -uroot -proot mysql
+  command: /opt/rh/mysql55/root/usr/bin/mysql -uroot -proot -e "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" mysql
   when: result|failed
