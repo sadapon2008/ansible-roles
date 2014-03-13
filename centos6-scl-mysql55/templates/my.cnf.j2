@@ -1,17 +1,20 @@
 [client]
 port = 3306 # mod
-socket = /var/lib/mysql/mysql.sock # mod
+socket=/var/lib/mysql/mysql.sock # mod
 
 [mysql]
 default_character_set = utf8 # mod
 
 [mysqld]
 port = 3306 # mod
-datadir=/var/lib/mysql
+datadir={{ dbroot }}
 socket=/var/lib/mysql/mysql.sock
-user=mysql
 # Disabling symbolic-links is recommended to prevent assorted security risks
 symbolic-links=0
+# Settings user and group are ignored when systemd is used.
+# If you need to run mysqld under different user or group, 
+# customize your systemd unit file for mysqld according to the
+# instructions in http://fedoraproject.org/wiki/Systemd
 
 max_allowed_packet = 8M # mod
 max_connections = 1024 # mod
@@ -19,12 +22,6 @@ max_connect_errors = 10000 # mod
 character-set-server=utf8 # mod
 default-storage-engine=InnoDB # mod
 
-innodb_strict_mode # mod
-innodb_data_file_path = ibdata1:10M:autoextend # mod
-innodb_data_home_dir = /var/lib/mysql # mod
-innodb_file_format = Barracuda # mod
-innodb_file_per_table # mod
-
 [mysqld_safe]
-log-error=/var/log/mysqld.log
-pid-file=/var/run/mysqld/mysqld.pid
+log-error=/var/log/mysql55-mysqld.log
+pid-file=/opt/rh/mysql55/root/var/run/mysqld/mysqld.pid

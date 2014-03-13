@@ -1,3 +1,0 @@
----
-- name: restart mysql55
-  service: name=mysql55-mysqld state=restarted

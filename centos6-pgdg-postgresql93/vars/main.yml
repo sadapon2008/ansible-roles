@@ -2,4 +2,4 @@
 # DBのデータディレクトリ
 dbroot: /var/lib/pgsql/9.3
 # DBに接続できるネットワーク範囲
-permite_network: 10.0.0.0/8
+permit_network: 10.0.0.0/8
