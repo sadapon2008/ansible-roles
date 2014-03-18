@@ -1,0 +1,22 @@
+---
+# nginxリポジトリをインストール
+- name: install nginx repository
+  yum: name="http://nginx.org/packages/centos/6/noarch/RPMS/nginx-release-centos-6-0.el6.ngx.noarch.rpm" state=installed
+# nginxをインストール
+- name: install nginx
+  yum: name={{ item }} state=present
+  with_items:
+    - nginx
+# docrootのディレクトリを作成
+- name: mkdir docroot
+  file: path={{ docroot }} state=directory owner={{ main_username }} group={{ main_username }}
+# nginxの設定
+- name: change default.conf
+  template: src=default.conf.j2 dest=/etc/nginx/conf.d/default.conf owner=root group=root
+- name: enable nginx
+  service: name=nginx enabled=yes
+- name: start nginx
+  service: name=nginx state=started
+# main_usernameのユーザシェルの環境変数を設定
+- name: environmental variable CAKE_ENV_MODE for main_username
+  lineinfile: dest=/home/{{ main_username }}/.bashrc regexp="^CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE$" line="CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE"

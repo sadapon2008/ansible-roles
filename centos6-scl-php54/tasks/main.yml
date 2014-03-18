@@ -4,9 +4,16 @@
   yum: name=centos-release-SCL state=present
 # php54のインストール
 - name: install php54
+  yum: name=php54-php state=present
+  when: not fpm_flg
+# php54-fpmのインストール
+- name: install php54-fpm
+  yum: name=php54-php-fpm state=present
+  when: fpm_flg
+# php54のインストール
+- name: install php54-other
   yum: name={{ item }} state=present
   with_items:
-  - php54-php
   - php54-php-pear
   - php54-php-devel
   - php54-php-xml
@@ -19,6 +26,9 @@
   copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini owner=root group=root
 # ここまで https://gist.github.com/debility/8838906 を反映
 - name: config PHP 2
+  copy: src=my_fpm.ini dest=/opt/rh/php54/root/etc/php.d/my_fpm.ini owner=root group=root
+  when: fpm_flg
+- name: config PHP 3
   copy: src=timezone.ini dest=/opt/rh/php54/root/etc/php.d/timezone.ini owner=root group=root
 - name: create /etc/profile.d/php54.sh
   copy: src=php54.sh dest=/etc/profile.d/php54.sh owner=root group=root
@@ -57,3 +67,18 @@
   copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini owner=root group=root
 - name: restart httpd
   service: name=httpd state=restarted
+  when: not fpm_flg
+- name: config php-fpm 1
+  lineinfile: dest=/opt/rh/php54/root/etc/php-fpm.d/www.conf regexp="^user = apache" line="user = nginx"
+  when: fpm_flg
+- name: config php-fpm 2
+  lineinfile: dest=/opt/rh/php54/root/etc/php-fpm.d/www.conf regexp="^group = apache" line="group = nginx"
+  when: fpm_flg
+- name: mkdir for php session
+  file: path=/opt/rh/php54/root/var/lib/php/session state=directory owner=nginx group=nginx
+- name: enable php-fpm
+  service: name=php54-php-fpm enabled=yes
+  when: fpm_flg
+- name: restart php-fpm
+  service: name=php54-php-fpm state=restarted
+  when: fpm_flg

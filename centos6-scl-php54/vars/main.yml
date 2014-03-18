@@ -1,0 +1,3 @@
+---
+# php-fpmを使うかどうかのフラグ値
+fpm_flg: false
