@@ -76,6 +76,7 @@
   when: fpm_flg
 - name: mkdir for php session
   file: path=/opt/rh/php54/root/var/lib/php/session state=directory owner=nginx group=nginx
+  when: fpm_flg
 - name: enable php-fpm
   service: name=php54-php-fpm enabled=yes
   when: fpm_flg
