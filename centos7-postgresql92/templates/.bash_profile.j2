@@ -1,0 +1,6 @@
+[ -f /etc/profile ] && source /etc/profile
+
+PGDATA={{ dbroot }}/data
+export PGDATA
+PGLOG={{ dbroot }}/pgstartup.log
+export PGLOG

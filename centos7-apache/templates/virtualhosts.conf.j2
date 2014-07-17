@@ -1,0 +1,37 @@
+<VirtualHost *:80>
+  DocumentRoot {{ docroot }}
+  <Directory "{{ docroot }}">
+    Options FollowSymLinks
+    AllowOverride All
+    DirectoryIndex index.html index.htm index.php
+    Require all granted
+  </Directory>
+
+  SetEnv CAKE_ENV_MODE "{{ cake_env_mode }}"
+</VirtualHost>
+
+<VirtualHost *:443>
+  DocumentRoot {{ docroot }}
+  <Directory "{{ docroot }}">
+    Options FollowSymLinks
+    AllowOverride All
+    DirectoryIndex index.html index.htm index.php
+    Require all granted
+  </Directory>
+
+  SetEnv CAKE_ENV_MODE "{{ cake_env_mode }}"
+
+  ErrorLog logs/ssl_error_log
+  TransferLog logs/ssl_access_log
+  LogLevel warn
+  SSLEngine on
+  SSLProtocol all -SSLv2
+  SSLCipherSuite HIGH:MEDIUM:!aNULL:!MD5
+  SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+  SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+  BrowserMatch "MSIE [2-5]" \
+    nokeepalive ssl-unclean-shutdown \
+    downgrade-1.0 force-response-1.0
+  CustomLog logs/ssl_request_log \
+    "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+</VirtualHost>

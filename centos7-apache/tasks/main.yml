@@ -1,0 +1,83 @@
+---
+# apacheをインストール
+- name: install httpd
+  yum: name={{ item }} state=present
+  with_items:
+    - httpd
+    - httpd-devel
+    - mod_ssl
+# docrootのディレクトリを作成
+- name: mkdir docroot
+  file: path={{ docroot }} state=directory owner={{ main_username }} group={{ main_username }}
+# ssl.confのVirtualHostの設定を削除する
+- name: change ssl.conf
+  raw: sed -i -e '/^\s*<VirtualHost _default_:443>/,/^\s*<\/VirtualHost>/s/^/#/' /etc/httpd/conf.d/ssl.conf
+# VirtualHostの設定
+- name: change virtualhosts.conf
+  template: src=virtualhosts.conf.j2 dest=/etc/httpd/conf.d/virtualhosts.conf owner=root group=root mode=0644
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: change httpd.conf 1
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp='^(\s*)Options\s.*FollowSymLinks' line='Options FollowSymLinks'
+- name: change httpd.conf 2
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp='^(\s*)ServerTokens\s' line='ServerTokens Prod'
+- name: change httpd.conf 3
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp='^(\s*ScriptAlias\s+/cgi-bin/.*)$' line='#\1' backrefs=yes
+- name: change httpd.conf 4
+  raw: sed -i
+           -e '/^\s*<Directory "\/var\/www\/html">/,/^\s*<\/Directory>/s/^/#/'
+           -e '/^\s*<Directory "\/var\/www\/cgi-bin">/,/^\s*<\/Directory>/s/^/#/'
+           /etc/httpd/conf/httpd.conf
+- name: disable autoindex.conf
+  shell: if [ -f "/etc/httpd/conf.d/autoindex.conf" ]; then mv -f /etc/httpd/conf.d/autoindex.conf /etc/httpd/conf.d/autoindex.conf.orig; fi
+- name: disable userdir.conf
+  shell: if [ -f "/etc/httpd/conf.d/userdir.conf" ]; then mv -f /etc/httpd/conf.d/userdir.conf /etc/httpd/conf.d/userdir.conf.orig; fi
+- name: disable welcome.conf
+  shell: if [ -f "/etc/httpd/conf.d/welcome.conf" ]; then mv -f /etc/httpd/conf.d/welcome.conf /etc/httpd/conf.d/welcome.conf.orig; fi
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: change httpd.conf 5
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp='^(\s*)AddDefaultCharset\s' line='AddDefaultCharset off'
+# ここから .svn などの隠ぺいの設定
+- name: change httpd.conf 6-1
+  command: grep -q '^<FilesMatch "^\\\.">' /etc/httpd/conf/httpd.conf
+  register: result
+  ignore_errors: true
+- name: change httpd.conf 6-2
+  action: |
+    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
+    <FilesMatch "^\.">
+        Require all denied
+    </FilesMatch>
+    EOF
+  when: result|failed
+- name: change httpd.conf 7-1
+  command: grep -q '^<DirectoryMatch "^(\.\*/)\*\\\.\.\*">' /etc/httpd/conf/httpd.conf
+  register: result
+  ignore_errors: true
+- name: change httpd.conf 7-2
+  action: |
+    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
+    <DirectoryMatch "^(.*/)*\..*">
+        Require all denied
+    </DirectoryMatch>
+    EOF
+  when: result|failed
+- name: change httpd.conf 8-1
+  command: grep -q '^<LocationMatch ^(\.\*/)\\\.\.\*>' /etc/httpd/conf/httpd.conf
+  register: result
+  ignore_errors: true
+- name: change httpd.conf 8-2
+  action: |
+    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
+    <LocationMatch ^(.*/)\..*>
+        Require all denied
+    </LocationMatch>
+    EOF
+  when: result|failed
+# ここまで .svn などの隠ぺいの設定
+- name: enable httpd
+  service: name=httpd enabled=yes
+- name: start httpd
+  service: name=httpd state=started
+# main_usernameのユーザシェルの環境変数を設定
+- name: environmental variable CAKE_ENV_MODE for main_username
+  lineinfile: dest=/home/{{ main_username }}/.bashrc regexp="^CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE$" line="CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE"
