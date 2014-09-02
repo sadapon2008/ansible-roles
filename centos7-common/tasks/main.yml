@@ -23,6 +23,9 @@
     - avahi-daemon
     - firewalld
     - postfix
+# EPELをインストール
+- name: install EPEL
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/7/x86_64/e/epel-release-7-1.noarch.rpm" state=installed
 # ntpをインストール
 - name: install ntp
   yum: name=ntp state=present

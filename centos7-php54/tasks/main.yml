@@ -11,43 +11,12 @@
   - php-pgsql
   - php-gd
   - php-mysqlnd
+  - php-mcrypt
+  - php-pecl-zendopcache
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
   copy: src=my.ini dest=/etc/php.d/my.ini owner=root group=root
 - name: config PHP 2
   copy: src=timezone.ini dest=/etc/php.d/timezone.ini owner=root group=root
-# OPcacheのインストール
-- name: install build-tools
-  yum: name={{ item }} state=present
-  with_items:
-  - gcc
-  - make
-- name: download PHP OPcache source
-  get_url: url="https://github.com/zendtech/ZendOptimizerPlus/archive/master.zip" dest=/root/ZendOptimizerPlus-master.zip
-- name: check PHP OPcache module
-  command: test -f "/usr/lib64/php/modules/opcache.so"
-  register: result
-  ignore_errors: true
-- name: unzip PHP OPcache source 1
-  command: rm -rf /root/ZendOptimizerPlus-master
-  ignore_errors: true
-  when: result|failed
-- name: unzip PHP OPcache source 2
-  command: unzip /root/ZendOptimizerPlus-master.zip -d /root
-  when: result|failed
-- name: phpize PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master /usr/bin/phpize
-  when: result|failed
-- name: configure PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master ./configure --with-php-config=/usr/bin/php-config
-  when: result|failed
-- name: make PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master make
-  when: result|failed
-- name: make install PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master make install
-  when: result|failed
-- name: config PHP OPcache
-  copy: src=opcache.ini dest=/etc/php.d/opcache.ini owner=root group=root
 - name: restart httpd
   service: name=httpd state=restarted
