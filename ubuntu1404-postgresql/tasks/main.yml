@@ -1,0 +1,23 @@
+---
+# postgresql 9.3のインストール
+- name: install postgresql 9.3
+  apt: name={{ item }} state=present
+  with_items:
+  - postgresql-9.3
+  - postgresql-client-9.3
+  - postgresql-contrib-9.3
+  - postgresql-server-dev-9.3
+# 自動起動の設定
+- name: enable postgresql
+  service: name=postgresql enabled=yes
+# 設定ファイルを変更
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres group=postgres mode=0640
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest=/etc/postgresql/9.3/main/postgresql.conf owner=postgres group=postgres
+# サービス起動
+- name: start postgresql
+  service: name=postgresql state=restarted
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: sudo -u postgres /usr/bin/psql -U postgres -c "ALTER USER postgres with unencrypted password 'postgres';"

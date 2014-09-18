@@ -1,0 +1,26 @@
+---
+# apacheをインストール
+- name: install apache2
+  apt: name={{ item }} state=present
+  with_items:
+    - apache2
+    - apache2-dev
+# docrootのディレクトリを作成
+- name: mkdir docroot
+  file: path={{ docroot }} state=directory owner={{ main_username }} group={{ main_username }}
+# apacheの設定
+- name: enable ssl 1
+  command: a2enmod ssl
+- name: enable ssl 2
+  command: a2ensite default-ssl
+- name: change 000-default.conf
+  template: src=000-default.conf.j2 dest=/etc/apache2/sites-available/000-default.conf owner=root group=root
+- name: change default-ssl.conf
+  template: src=default-ssl.conf.j2 dest=/etc/apache2/sites-available/default-ssl.conf owner=root group=root
+- name: enable apache2
+  service: name=apache2 enabled=yes
+- name: start apache2
+  service: name=apache2 state=restarted
+# main_usernameのユーザシェルの環境変数を設定
+- name: environmental variable CAKE_ENV_MODE for main_username
+  lineinfile: dest=/home/{{ main_username }}/.bashrc regexp="^CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE$" line="CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE"

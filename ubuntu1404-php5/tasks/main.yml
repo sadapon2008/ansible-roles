@@ -1,0 +1,26 @@
+---
+# php5のインストール
+- name: install php5
+  apt: name={{ item }} state=present
+  with_items:
+  - libapache2-mod-php5
+  - php5
+  - php5-cli
+  - php5-dev
+  - php5-curl
+  - php5-gd
+  - php5-mysqlnd
+  - php5-pgsql
+  - php5-mcrypt
+  - php-pear
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP 1
+  copy: src=my.ini dest=/etc/php5/mods-available/my.ini owner=root group=root
+- name: config PHP 2
+  command: php5enmod my
+# ここまで https://gist.github.com/debility/8838906 を反映
+# apache2の設定変更
+- name: change apache2 config
+  command: a2enmod rewrite
+- name: start apache2
+  service: name=apache2 state=restarted

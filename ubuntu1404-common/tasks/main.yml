@@ -1,0 +1,48 @@
+---
+# userを追加
+- name: useradd main_username
+  user: name={{ main_username }} password={{ main_password }} shell=/bin/bash groups=sudo
+# パッケージを更新
+- name: apt-get update
+  apt: update_cache=yes
+- name: aptitude safe-upgrade
+  apt: upgrade=yes
+# sysv-rc-confをインストール
+- name: install sysv-rc-conf
+  apt: name=sysv-rc-conf state=present
+# 不要なサービスの停止と自動起動をオフに
+- name: stop services
+  service: name={{ item }} state=stopped
+  with_items:
+    - dns-clean
+    - pppd-dns
+    - rsync
+- name: disable services
+  service: name={{ item }} enabled=no
+  with_items:
+    - dns-clean
+    - pppd-dns
+    - rsync
+# ntpをインストール
+- name: install ntp
+  apt: name=ntp state=present
+- name: enable ntp
+  service: name=ntp enabled=yes
+- name: stop ntp
+  service: name=ntp state=stopped
+- name: change ntp.conf
+  copy: src=ntp.conf dest=/etc/ntp.conf owner=root group=root
+- name: sync ntp.nict.jp
+  command: /usr/sbin/ntpdate ntp.nict.jp
+- name: sync hwclock
+  command: /sbin/hwclock -w
+- name: start ntp
+  service: name=ntp state=started
+# 色々パッケージを追加
+- name: install packages
+  apt: name={{ item }} state=present
+  with_items:
+    - zip
+    - unzip
+    - git-svn
+    - nkf
