@@ -2,6 +2,12 @@
 # SCLをインストール
 - name: install SCL
   yum: name=centos-release-SCL state=present
+# EPELをインストール
+- name: install EPEL
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm" state=installed
+# softwarecollections.orgのphp54moreをインストール
+- name: install php54more
+  yum: name="https://www.softwarecollections.org/en/scls/remi/php54more/epel-6-x86_64/download/remi-php54more-epel-6-x86_64.noarch.rpm" state=installed
 # php54のインストール
 - name: install php54
   yum: name=php54-php state=present
@@ -21,6 +27,8 @@
   - php54-php-pgsql
   - php54-php-gd
   - php54-php-mysqlnd
+  - php54-php-pecl-zendopcache
+  - php54-php-mcrypt
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
   copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini owner=root group=root
@@ -30,41 +38,10 @@
   when: fpm_flg
 - name: config PHP 3
   copy: src=timezone.ini dest=/opt/rh/php54/root/etc/php.d/timezone.ini owner=root group=root
+- name: config PHP 4
+  copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini owner=root group=root
 - name: create /etc/profile.d/php54.sh
   copy: src=php54.sh dest=/etc/profile.d/php54.sh owner=root group=root
-# OPcacheのインストール
-- name: install build-tools
-  yum: name={{ item }} state=present
-  with_items:
-  - gcc
-  - make
-- name: download PHP OPcache source
-  get_url: url="https://github.com/zendtech/ZendOptimizerPlus/archive/master.zip" dest=/root/ZendOptimizerPlus-master.zip
-- name: check PHP OPcache module
-  command: test -f "/opt/rh/php54/root/usr/lib64/php/modules/opcache.so"
-  register: result
-  ignore_errors: true
-- name: unzip PHP OPcache source 1
-  command: rm -rf /root/ZendOptimizerPlus-master
-  ignore_errors: true
-  when: result|failed
-- name: unzip PHP OPcache source 2
-  command: unzip /root/ZendOptimizerPlus-master.zip -d /root
-  when: result|failed
-- name: phpize PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master /opt/rh/php54/root/usr/bin/phpize
-  when: result|failed
-- name: configure PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master ./configure --with-php-config=/opt/rh/php54/root/usr/bin/php-config
-  when: result|failed
-- name: make PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master make
-  when: result|failed
-- name: make install PHP OPcache
-  command: chdir=/root/ZendOptimizerPlus-master make install
-  when: result|failed
-- name: config PHP OPcache
-  copy: src=opcache.ini dest=/opt/rh/php54/root/etc/php.d/opcache.ini owner=root group=root
 - name: restart httpd
   service: name=httpd state=restarted
   when: not fpm_flg
