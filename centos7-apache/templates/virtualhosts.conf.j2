@@ -25,7 +25,7 @@
   TransferLog logs/ssl_access_log
   LogLevel warn
   SSLEngine on
-  SSLProtocol all -SSLv2
+  SSLProtocol all -SSLv2 -SSLv3
   SSLCipherSuite HIGH:MEDIUM:!aNULL:!MD5
   SSLCertificateFile /etc/pki/tls/certs/localhost.crt
   SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
