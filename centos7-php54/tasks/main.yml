@@ -13,6 +13,7 @@
   - php-mysqlnd
   - php-mcrypt
   - php-pecl-zendopcache
+  - php-intl
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
   copy: src=my.ini dest=/etc/php.d/my.ini owner=root group=root
