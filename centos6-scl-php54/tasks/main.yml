@@ -29,6 +29,7 @@
   - php54-php-mysqlnd
   - php54-php-pecl-zendopcache
   - php54-php-mcrypt
+  - php54-php-intl
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
   copy: src=my.ini dest=/opt/rh/php54/root/etc/php.d/my.ini owner=root group=root
