@@ -13,6 +13,7 @@
   - php5-pgsql
   - php5-mcrypt
   - php-pear
+  - php5-intl
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
   copy: src=my.ini dest=/etc/php5/mods-available/my.ini owner=root group=root
