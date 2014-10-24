@@ -1,0 +1,5 @@
+---
+# DBのデータディレクトリ
+dbroot: /opt/rh/mysql55/root/var/lib/mysql
+# DBに接続できるネットワーク範囲
+permit_network: 10.0.0.0/255.0.0.0

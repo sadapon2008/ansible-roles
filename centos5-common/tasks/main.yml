@@ -1,0 +1,70 @@
+---
+# userを追加
+- name: useradd main_username
+  user: name={{ main_username }} password={{ main_password }}
+# パッケージを更新
+- name: yum update
+  command: yum -y update
+# SELinuxの設定用のパッケージを追加
+- name: install libselinux-python
+  yum: name=libselinux-python state=present
+# SELinuxをオフに
+- name: disable selinux 1
+  selinux: state=disabled
+- name: disable selinux 2
+  shell: if [ "`/usr/sbin/getenforce`" = "Enforcing" ]; then /usr/sbin/setenforce 0; fi
+# 不要なサービスの停止と自動起動をオフに
+- name: stop services
+  service: name={{ item }} state=stopped
+  with_items:
+    - ip6tables
+    - iptables
+    - sendmail
+- name: disable services
+  service: name={{ item }} enabled=no
+  with_items:
+    - auditd
+    - bluetooth
+    - ip6tables
+    - iptables
+    - iscsi
+    - iscsid
+    - isdn
+    - mcstrans
+    - mdmonitor
+    - netfs
+    - nfslock
+    - pcscd
+    - restorecond
+    - rpcgssd
+    - rpcidmapd
+    - sendmail
+    - smartd
+# EPELをインストール
+- name: install EPEL
+  shell: if [ "`rpm -q --queryformat="%{NAME}" epel-release`" != "epel-release" ]; then rpm -Uvh http://ftp.riken.jp/Linux/fedora/epel/5/x86_64/epel-release-5-4.noarch.rpm; fi
+# ntpをインストール
+- name: install ntp
+  yum: name=ntp state=present
+- name: enable ntp
+  service: name=ntpd enabled=yes
+- name: stop ntpd
+  service: name=ntpd state=stopped
+- name: change ntp.conf
+  copy: src=ntp.conf dest=/etc/ntp.conf owner=root group=root
+- name: sync ntp.nict.jp
+  command: /usr/sbin/ntpdate ntp.nict.jp
+- name: sync hwclock
+  command: /sbin/hwclock -w
+- name: start ntpd
+  service: name=ntpd state=started
+# 色々パッケージを追加
+- name: install packages
+  yum: name={{ item }} state=present
+  with_items:
+    - zip
+    - unzip
+    - wget
+    - man
+    - git-svn
+    - nkf

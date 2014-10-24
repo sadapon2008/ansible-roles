@@ -1,0 +1,33 @@
+---
+# remiのリポジトリをインストール
+- name: install remi repository
+  shell: if [ "`rpm -q --queryformat="%{NAME}" remi-release`" != "remi-release" ]; then rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-5.rpm; fi
+# php55のインストール
+- name: install php55
+  yum: name={{ item }} enablerepo=remi-php55,remi state=present
+  with_items:
+  - php
+  - php-pear
+  - php-devel
+  - php-xml
+  - php-mbstring
+  - php-pgsql
+  - php-gd
+  - php-mysqlnd
+  - php-mcrypt
+  - php-intl
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP 1
+  copy: src=my.ini dest=/etc/php.d/my.ini
+# ここまで https://gist.github.com/debility/8838906 を反映
+- name: config PHP 2
+  copy: src=timezone.ini dest=/etc/php.d/timezone.ini
+# OPcacheのインストール
+- name: install OPCache
+  yum: name={{ item }} enablerepo=remi-php55,remi state=present
+  with_items:
+  - php-opcache
+- name: config OPCache
+  lineinfile: dest=/etc/php.d/opcache.ini regexp="opcache\.enable_cli=" line="opcache.enable_cli=1"
+- name: restart httpd
+  service: name=httpd state=restarted

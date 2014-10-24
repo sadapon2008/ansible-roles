@@ -1,0 +1,46 @@
+---
+- name: groupadd mysql
+  group: name=mysql state=present
+- name: useradd mysql
+  user: name=mysql group=mysql system=yes state=present
+# MySQLのリポジトリをインストール
+- name: install MySQL repository 1
+  get_url: url=http://dev.mysql.com/get/mysql-community-release-el5-5.noarch.rpm dest=/root/mysql-community-release-el5-5.noarch.rpm mode=644
+- name: install MySQL repository 2
+  shell: if [ "`rpm -q --queryformat="%{NAME}" mysql-community-release`" != "mysql-community-release" ]; then rpm -Uvh /root/mysql-community-release-el5-5.noarch.rpm; fi
+# moduleに必要なパッケージをインストール
+- name: install for ansible modules
+  yum: name={{ item }} state=present
+  with_items:
+  - python-iniparse
+  - MySQL-python
+# MySQL5.6のインストール
+- name: install MySQL
+  yum: name={{ item }} state=present
+  with_items:
+  - mysql-community-server
+# データディレクトリを準備
+- name: make directory for dbroot
+  file: path={{ dbroot }} state=directory owner=mysql group=mysql mode=755
+- name: copy my.cnf
+  template: src=my.cnf.j2 dest=/etc/my.cnf owner=root group=root
+# 自動起動の設定
+- name: enable MySQL
+  service: name=mysqld enabled=yes
+# 設定済みかの確認
+- name: check datadir
+  command: test -f "{{ dbroot }}/ib_logfile0"
+  register: result
+  ignore_errors: true
+# サービス起動
+- name: start MySQL
+  service: name=mysqld state=started
+# 初期化
+# rootユーザのパスワード初期化
+- name: config root password
+  command: /usr/bin/mysqladmin -u root password 'root'
+  when: result|failed
+# ネットワークのアクセス制限を設定する
+- name: config permit network
+  command: /usr/bin/mysql -uroot -proot -e "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" mysql
+  when: result|failed

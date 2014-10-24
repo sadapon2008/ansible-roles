@@ -1,0 +1,39 @@
+---
+# moduleに必要なパッケージをインストール
+- name: install for ansible modules
+  yum: name={{ item }} state=present
+  with_items:
+  - python-iniparse
+  - MySQL-python
+# MySQL5.5のインストール
+- name: install MySQL
+  yum: name={{ item }} state=present
+  with_items:
+  - mysql55
+- name: config /etc/profile.d/mysql55.sh
+  copy: src=mysql55.sh dest=/etc/profile.d/mysql55.sh owner=root group=root
+# データディレクトリを準備
+- name: make directory for dbroot
+  file: path={{ dbroot }} state=directory owner=mysql group=mysql mode=755
+- name: copy my.cnf
+  template: src=my.cnf.j2 dest=/opt/rh/mysql55/root/etc/my.cnf owner=root group=root
+# 自動起動の設定
+- name: enable MySQL
+  service: name=mysql55-mysqld enabled=yes
+# 設定済みかの確認
+- name: check datadir
+  command: test -f "{{ dbroot }}/ib_logfile0"
+  register: result
+  ignore_errors: true
+# サービス起動
+- name: start MySQL
+  service: name=mysql55-mysqld state=started
+# 初期化
+# rootユーザのパスワード初期化
+- name: config root password
+  command: /opt/rh/mysql55/root/usr/bin/mysqladmin -u root password 'root'
+  when: result|failed
+# ネットワークのアクセス制限を設定する
+- name: config permit network
+  command: /opt/rh/mysql55/root/usr/bin/mysql -uroot -proot -e "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" mysql
+  when: result|failed
