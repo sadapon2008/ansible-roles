@@ -1,6 +1,7 @@
 [client]
 port = 3306 # mod
 socket=/var/lib/mysql/mysql.sock # mod
+default_character_set = utf8 # mod
 
 [mysql]
 default_character_set = utf8 # mod
@@ -20,8 +21,13 @@ max_allowed_packet = 8M # mod
 max_connections = 1024 # mod
 max_connect_errors = 10000 # mod
 character-set-server=utf8 # mod
+collation-server = utf8_bin #mod
 default-storage-engine=InnoDB # mod
 
 [mysqld_safe]
 log-error=/var/log/mysql55-mysqld.log
 pid-file=/opt/rh/mysql55/root/var/run/mysqld/mysqld.pid
+character-set-server=utf8 # mod
+
+[mysqldump]
+default-character-set=utf8
