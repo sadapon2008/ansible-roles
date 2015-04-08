@@ -17,15 +17,17 @@
     - avahi-daemon
     - firewalld
     - postfix
+  ignore_errors: true
 - name: disable services
   service: name={{ item }} enabled=no
   with_items:
     - avahi-daemon
     - firewalld
     - postfix
+  ignore_errors: true
 # EPELをインストール
 - name: install EPEL
-  yum: name="http://ftp.riken.jp/Linux/fedora/epel/7/x86_64/e/epel-release-7-1.noarch.rpm" state=installed
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/7/x86_64/e/epel-release-7-5.noarch.rpm" state=present
 # ntpをインストール
 - name: install ntp
   yum: name=ntp state=present
