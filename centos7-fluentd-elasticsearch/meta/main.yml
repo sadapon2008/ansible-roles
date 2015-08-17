@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: centos7-fluentd }
+  - { role: centos7-elasticsearch }

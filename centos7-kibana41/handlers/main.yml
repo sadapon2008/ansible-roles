@@ -1,0 +1,5 @@
+---
+- name: restart kibana41
+  service: >
+    name=kibana
+    state=restarted

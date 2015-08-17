@@ -1,0 +1,26 @@
+---
+- name: install fluent-plugin-elasticsearch
+  gem: >
+    name={{ item }}
+    state=present
+    executable='/opt/td-agent/embedded/bin/fluent-gem'
+    user_install=false
+  with_items:
+    - fluent-plugin-elasticsearch
+    - fluent-plugin-forest
+  notify: restart fluentd
+- name: put td-agent.conf
+  template: >
+    src=td-agent.conf.j2
+    dest=/etc/td-agent/td-agent.conf
+    owner=root
+    group=root
+    mode=0644
+  notify: restart fluentd
+- name: configure firewalld
+  firewalld: >
+    zone=public
+    port=24224/tcp
+    state=enabled
+    permanent=true
+    immediate=yes

@@ -1,0 +1,30 @@
+---
+- name: import rpm key
+  rpm_key: >
+    state=present
+    key=https://packages.elastic.co/GPG-KEY-elasticsearch
+- name: Put /etc/yum.repos.d/kibana41.repo
+  copy: >
+    src=kibana41.repo
+    dest=/etc/yum.repos.d/kibana41.repo
+    owner=root
+    group=root
+    mode=0644
+- name: install kibana41
+  yum: >
+    name=kibana
+    state=present
+  notify: restart kibana41
+- name: reload systemd
+  command: /usr/bin/systemctl daemon-reload
+- name: enable kibana41
+  service: >
+    name=kibana
+    enabled=yes
+- name: configure firewalld
+  firewalld: >
+    zone=public
+    port=5601/tcp
+    state=enabled
+    permanent=true
+    immediate=yes

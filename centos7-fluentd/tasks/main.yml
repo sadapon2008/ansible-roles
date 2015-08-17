@@ -1,0 +1,50 @@
+---
+- name: Update /etc/security/limits.conf (1/2)
+  lineinfile: >
+    dest=/etc/security/limits.conf
+    insertbefore='# End of file'
+    line='root soft nofile 65536'
+    state=present
+- name: Update /etc/security/limits.conf (2/2)
+  lineinfile: >
+    dest=/etc/security/limits.conf
+    insertbefore='# End of file'
+    line='root hard nofile 65536'
+    state=present
+- name: Update /etc/sysctl.conf (1/3)
+  sysctl: >
+    name=net.ipv4.tcp_tw_recycle
+    value=1
+    state=present
+- name: Update /etc/sysctl.conf (2/3)
+  sysctl: >
+    name=net.ipv4.tcp_tw_reuse
+    value=1
+    state=present
+- name: Update /etc/sysctl.conf (3/3)
+  sysctl: >
+    name=net.ipv4.ip_local_port_range
+    value='10240    65535'
+    state=present
+- name: import rpm key
+  rpm_key: >
+    state=present
+    key=http://packages.treasuredata.com/GPG-KEY-td-agent
+- name: Put /etc/yum.repos.d/td.repo
+  copy: >
+    src=td.repo
+    dest=/etc/yum.repos.d/td.repo
+    owner=root
+    group=root
+    mode=0644
+- name: install td-agent
+  yum: >
+    name=td-agent
+    state=present
+  notify: restart td-agent
+- name: reload systemd
+  command: /usr/bin/systemctl daemon-reload
+- name: enable td-agent
+  service: >
+    name=td-agent
+    enabled=yes
