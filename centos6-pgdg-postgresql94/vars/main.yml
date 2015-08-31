@@ -1,0 +1,4 @@
+---
+# DBに接続できるネットワーク範囲
+permit_network: 10.0.0.0/8
+dbroot: /var/lib/pgsql/9.4

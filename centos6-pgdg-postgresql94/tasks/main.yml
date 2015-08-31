@@ -1,0 +1,51 @@
+---
+# PostgreSQL9.4のリポジトリをインストール
+- name: install PostgreSQL9.4 repository
+  yum: name=http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm state=present
+- name: disable PostgreSQL9.4 repository
+  lineinfile: dest=/etc/yum.repos.d/pgdg-94-centos.repo regexp='^enabled=1' line='enabled=0' state=present
+# postgresql94のインストール
+- name: install postgresql94
+  yum: name={{ item }} enablerepo=pgdg94 state=present
+  with_items:
+  - postgresql94-server
+  - postgresql94-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+# PGDATAとPGLOGの設定
+- name: create /etc/sysconfig/pgsql/postgresql-9.4
+  template: src=postgresql-9.4.j2 dest=/etc/sysconfig/pgsql/postgresql-9.4 owner=root group=root
+# 自動起動の設定
+- name: enable postgresql94
+  service: name=postgresql-9.4 enabled=yes
+# 設定済みかの確認
+- name: check postgresql.conf
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
+  register: is_initialized
+  ignore_errors: true
+# 初期化
+- name: initdb
+  command: su postgres -c "/usr/pgsql-9.4/bin/initdb --no-locale --encoding=UTF8 -D {{ dbroot }}/data"
+  when: is_initialized|failed
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf
+  when: is_initialized|failed
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
+  notify: restart postgresql94
+# サービス起動
+- name: start postgresql94
+  service: name=postgresql-9.4 state=started
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: sudo -u postgres /usr/bin/psql -U postgres -c "ALTER USER postgres with unencrypted password 'postgres';"
+  when: is_initialized|failed
+# アクセス方法をmd5に変更して再起動
+- name: config pg_hba.conf
+  template: src=pg_hba.conf2.j2 dest={{ dbroot }}/data/pg_hba.conf
+  notify: restart postgresql94
