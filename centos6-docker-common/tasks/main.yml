@@ -1,0 +1,46 @@
+---
+- name: set locale to /etc/sysconfig/i18n
+  replace: >
+    dest=/etc/sysconfig/i18n
+    regexp='^LANG=\"en_US\.UTF-8\"'
+    replace='LANG="ja_JP.UTF-8"'
+- name: set zone to /etc/sysconfig/clock
+  replace: >
+    dest=/etc/sysconfig/clock
+    regexp='^ZONE=\"UTC\"'
+    replace='ZONE="Asia/Tokyo"'
+- name: set localtime
+  file: >
+    src=/usr/share/zoneinfo/Asia/Tokyo
+    dest=/etc/localtime
+    state=link
+    force=yes
+# groupを追加
+- name: groupadd main_username
+  group: >
+    name={{ main_username }}
+    gid={{ main_gid }}
+# userを追加
+- name: useradd main_username
+  user: >
+    name={{ main_username }}
+    group={{ main_username }}
+    uid={{ main_uid }}
+    password={{ main_password }}
+# EPELをインストール
+- name: install EPEL
+  yum: >
+    name='http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-6.noarch.rpm'
+    state=installed
+# 色々パッケージを追加
+- name: install packages
+  yum: >
+    name={{ item }}
+    state=present
+  with_items:
+    - zip
+    - unzip
+    - wget
+    - man
+    - git-svn
+    - nkf

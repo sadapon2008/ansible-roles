@@ -1,0 +1,7 @@
+---
+# 追加するユーザ名
+main_username: username
+# 追加するユーザのパスワード
+main_password: password
+main_uid: 1000
+main_gid: 1000
