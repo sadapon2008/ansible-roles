@@ -37,42 +37,8 @@
 - name: change httpd.conf 5
   lineinfile: dest=/etc/httpd/conf/httpd.conf regexp='^(\s*)AddDefaultCharset\s' line='AddDefaultCharset off'
 # ここから .svn などの隠ぺいの設定
-- name: change httpd.conf 6-1
-  command: grep -q '^<FilesMatch "^\\\.">' /etc/httpd/conf/httpd.conf
-  register: result
-  ignore_errors: true
-- name: change httpd.conf 6-2
-  action: |
-    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
-    <FilesMatch "^\.">
-        Require all denied
-    </FilesMatch>
-    EOF
-  when: result|failed
-- name: change httpd.conf 7-1
-  command: grep -q '^<DirectoryMatch "^(\.\*/)\*\\\.\.\*">' /etc/httpd/conf/httpd.conf
-  register: result
-  ignore_errors: true
-- name: change httpd.conf 7-2
-  action: |
-    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
-    <DirectoryMatch "^(.*/)*\..*">
-        Require all denied
-    </DirectoryMatch>
-    EOF
-  when: result|failed
-- name: change httpd.conf 8-1
-  command: grep -q '^<LocationMatch ^(\.\*/)\\\.\.\*>' /etc/httpd/conf/httpd.conf
-  register: result
-  ignore_errors: true
-- name: change httpd.conf 8-2
-  action: |
-    raw cat <<EOF >>/etc/httpd/conf/httpd.conf
-    <LocationMatch ^(.*/)\..*>
-        Require all denied
-    </LocationMatch>
-    EOF
-  when: result|failed
+- name: copy 00-match.conf
+  copy: src=00-match.conf dest=/etc/httpd/conf.d/00-match.conf owner=root group=root mode=0644
 # ここまで .svn などの隠ぺいの設定
 - name: enable httpd
   service: name=httpd enabled=yes

@@ -6,7 +6,6 @@
 - name: install php56
   yum: name={{ item }} enablerepo=remi,remi-php56 state=present
   with_items:
-  - php56
   - php56-php
   - php56-php-pear
   - php56-php-devel
@@ -20,14 +19,15 @@
   - php56-php-opcache
   - php56-php-pdo
   - php56-php-pecl-xdebug
+  notify: restart httpd
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP
   copy: src=99-my.ini dest=/opt/remi/php56/root/etc/php.d/99-my.ini
+  notify: restart httpd
 # ここまで https://gist.github.com/debility/8838906 を反映
 - name: config OPCache
   lineinfile: dest=/opt/remi/php56/root/etc/php.d/10-opcache.ini regexp="opcache\.enable_cli=" line="opcache.enable_cli=1"
+  notify: restart httpd
 # ログイン時に有効化する
 - name: config for login
   copy: src=enablephp56.sh dest=/etc/profile.d/enablephp56.sh mode=0644
-- name: restart httpd
-  service: name=httpd state=restarted

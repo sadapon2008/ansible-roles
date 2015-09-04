@@ -10,24 +10,33 @@
   with_items:
   - postgresql94-server
   - postgresql94-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+- name: copy postgresql-9.4.service
+  template: src=postgresql-9.4.service.j2 dest=/usr/lib/systemd/system/postgresql-9.4.service owner=root group=root mode=0644
 # 自動起動の設定
 - name: enable postgresql94
   service: name=postgresql-9.4 enabled=yes
 # 設定済みかの確認
 - name: check postgresql.conf
-  command: test -f "/var/lib/pgsql/9.4/data/postgresql.conf"
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
   register: is_initialized
   ignore_errors: true
 # 初期化
 - name: initdb
-  command: env PGSETUP_INITDB_OPTIONS='--no-locale --encoding=UTF8' /usr/pgsql-9.4/bin/postgresql94-setup initdb
+  command: su postgres -c "/usr/pgsql-9.4/bin/initdb --no-locale --encoding=UTF8 -D {{ dbroot }}/data"
   when: is_initialized|failed
 - name: config pg_hba.conf
-  template: src=pg_hba.conf.j2 dest=/var/lib/pgsql/9.4/data/pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf
   when: is_initialized|failed
 - name: config postgresql.conf
-  copy: src=postgresql.conf dest=/var/lib/pgsql/9.4/data/postgresql.conf
-  when: is_initialized|failed
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
+  notify: restart postgresql94
 # サービス起動
 - name: start postgresql94
   service: name=postgresql-9.4 state=started
@@ -37,9 +46,5 @@
   when: is_initialized|failed
 # アクセス方法をmd5に変更して再起動
 - name: config pg_hba.conf
-  template: src=pg_hba.conf2.j2 dest=/var/lib/pgsql/9.4/data/pg_hba.conf
-  when: is_initialized|failed
-# サービス再起動
-- name: start postgresql94
-  service: name=postgresql-9.4 state=restarted
-  when: is_initialized|failed
+  template: src=pg_hba.conf2.j2 dest={{ dbroot }}/data/pg_hba.conf
+  notify: restart postgresql94
