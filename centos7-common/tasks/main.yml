@@ -9,7 +9,7 @@
 - name: disable selinux 1
   selinux: state=disabled
 - name: disable selinux 2
-  shell: if [ "`/usr/sbin/getenforce`" = "Enforcing" ]; then /usr/sbin/setenforce 0; fi
+  shell: if [ "`/usr/sbin/getenforce`" != "Disabled" ]; then /usr/sbin/setenforce 0; fi
 # 不要なサービスの停止と自動起動をオフに
 - name: stop services
   service: name={{ item }} state=stopped
@@ -27,7 +27,7 @@
   ignore_errors: true
 # EPELをインストール
 - name: install EPEL
-  yum: name="http://ftp.riken.jp/Linux/fedora/epel/7/x86_64/e/epel-release-7-5.noarch.rpm" state=present
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-7.noarch.rpm" state=present
 # ntpをインストール
 - name: install ntp
   yum: name=ntp state=present
