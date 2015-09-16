@@ -1,0 +1,42 @@
+---
+# postgresqlのインストール
+- name: install postgresql84
+  yum: name={{ item }} state=present
+  with_items:
+  - postgresql84-server
+  - postgresql84-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+# PGDATAとPGLOGの設定
+- name: create /etc/sysconfig/pgsql/postgresql
+  template: src=postgresql.j2 dest=/etc/sysconfig/pgsql/postgresql owner=root group=root
+# 自動起動の設定
+- name: enable postgresql
+  service: name=postgresql enabled=yes
+# 設定済みかの確認
+- name: check postgresql.conf
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
+  register: result
+  ignore_errors: true
+# 初期化
+- name: initdb
+  command: su postgres -c "/usr/bin/initdb --no-locale -D {{ dbroot }}/data -E UTF8"
+  when: result|failed
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf owner=postgres group=postgres
+  when: result|failed
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf owner=postgres group=postgres
+  when: result|failed
+# サービス起動
+- name: start postgresql
+  service: name=postgresql state=started
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: /usr/bin/psql -U postgres -c "ALTER USER postgres with unencrypted password 'postgres';"
+  when: result|failed

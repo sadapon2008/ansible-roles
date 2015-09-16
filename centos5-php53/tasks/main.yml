@@ -1,0 +1,45 @@
+---
+# EPELをインストール
+- name: import EPEL key
+  rpm_key: key="http://ftp.riken.jp/Linux/fedora/epel/RPM-GPG-KEY-EPEL-5" state=present
+- name: install EPEL
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-5.noarch.rpm" state=present
+# php53のインストール
+- name: install php53
+  yum: name={{ item }} state=present
+  with_items:
+  - php53
+  - php53-devel
+  - php53-xml
+  - php53-mbstring
+  - php53-pgsql
+  - php53-gd
+  - php53-mysql
+  - php53-mcrypt
+  - php53-intl
+  - php53-pdo
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP 1
+  copy: src=my.ini dest=/etc/php.d/my.ini owner=root group=root
+  notify: restart httpd
+# ここまで https://gist.github.com/debility/8838906 を反映
+- name: config PHP 2
+  copy: src=timezone.ini dest=/etc/php.d/timezone.ini owner=root group=root
+  notify: restart httpd
+# pearの設定
+- name: install php-pear
+  yum: name=php-pear state=present
+- name: upgrade php-pear 1
+  shell: pear upgrade --force Archive_Tar
+- name: upgrade php-pear 2
+  shell: pear upgrade --force Console_Getopt
+- name: upgrade php-pear 3
+  shell: pear upgrade PEAR
+# acpの設定
+- name: pecl channel-update pecl.php.net
+  shell: pecl channel-update pecl.php.net
+- name: pecl install apc
+  shell: pecl list apc || (printf "\n" | pecl install apc)
+- name: copy apc.ini
+  copy: src=apc.ini dest=/etc/php.d/apc.ini owner=root group=root
+  notify: restart httpd

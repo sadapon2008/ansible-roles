@@ -12,7 +12,7 @@
 - name: disable selinux 1
   selinux: state=disabled
 - name: disable selinux 2
-  shell: if [ "`/usr/sbin/getenforce`" = "Enforcing" ]; then /usr/sbin/setenforce 0; fi
+  shell: if [ "`/usr/sbin/getenforce`" != "Disabled" ]; then /usr/sbin/setenforce 0; fi
 # 不要なサービスの停止と自動起動をオフに
 - name: stop services
   service: name={{ item }} state=stopped
@@ -20,6 +20,9 @@
     - ip6tables
     - iptables
     - sendmail
+    - gpm
+    - xfs
+  ignore_errors: true
 - name: disable services
   service: name={{ item }} enabled=no
   with_items:
@@ -40,9 +43,14 @@
     - rpcidmapd
     - sendmail
     - smartd
+    - gpm
+    - xfs
+  ignore_errors: true
 # EPELをインストール
+- name: import EPEL key
+  rpm_key: key="http://ftp.riken.jp/Linux/fedora/epel/RPM-GPG-KEY-EPEL-5" state=present
 - name: install EPEL
-  shell: if [ "`rpm -q --queryformat="%{NAME}" epel-release`" != "epel-release" ]; then rpm -Uvh http://ftp.riken.jp/Linux/fedora/epel/5/x86_64/epel-release-5-4.noarch.rpm; fi
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-5.noarch.rpm" state=present
 # ntpをインストール
 - name: install ntp
   yum: name=ntp state=present
