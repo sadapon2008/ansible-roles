@@ -1,0 +1,38 @@
+[global]
+	workgroup = MYGROUP
+	server string = Samba Server Version %v
+	log file = /var/log/samba/log.%m
+	max log size = 50
+	security = user
+	passdb backend = tdbsam
+	local master = no
+	os level = 1
+	preferred master = no
+	wins support = no
+	wins proxy = no
+	dns proxy = no
+	load printers = no
+	cups options = raw
+	printcap name = /dev/null
+	printing = bsd
+	disable spoolss = yes
+	max protocol = SMB2
+	smb ports = 445
+	disable netbios = yes
+
+[homes]
+	comment = Home Directories
+	browseable = no
+	writable = yes
+
+[docroot]
+	comment = DocumentRoot Directory
+	path = {{ docroot }}
+	browseable = yes
+	guest ok = no
+	writable = yes
+	valid users = {{ main_username }}
+	create mask = 0664
+	directory mask = 0775
+	force create mode = 0664
+	force directory mode = 0775
