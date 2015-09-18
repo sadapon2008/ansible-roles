@@ -1,0 +1,29 @@
+---
+# sambaをインストール
+- name: install samba
+  yum: name={{ item }} state=present
+  with_items:
+    - samba
+    - samba-client
+# smb.confのコピー
+- name: copy smb.conf
+  template: src=smb.conf.j2 dest=/etc/samba/smb.conf owner=root group=root mode=0644
+  notify: restart smb
+# サービスの起動設定
+- name: enable smb
+  service: name=smb enabled=yes
+# サービス起動
+- name: start smb
+  service: name=smb state=started
+# ユーザのチェックと追加
+- name: check samba user
+  shell:  pdbedit -L {{ main_username }}
+  register: is_samba_user
+  changed_when: false
+  failed_when: is_samba_user.rc not in [0, 255]
+  always_run: yes
+- name: add samba user
+  shell: echo -e "{{ main_username }}\n{{ main_username }}\n" | pdbedit -t -a {{ main_username }}
+  register: ret
+  when: is_samba_user.rc != 0
+  changed_when: is_samba_user != 0 and ret.rc == 0
