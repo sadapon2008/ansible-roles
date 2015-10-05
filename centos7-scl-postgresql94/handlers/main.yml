@@ -1,0 +1,3 @@
+---
+- name: restart rh-postgresql94-postgresql
+  service: name=rh-postgresql94-postgresql state=restarted

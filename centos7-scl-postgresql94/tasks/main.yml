@@ -1,0 +1,47 @@
+---
+- name: install scl-utils
+  yum: name=scl-utils state=present
+# リポジトリをインストール
+- name: install scl repository
+  yum: name=https://www.softwarecollections.org/en/scls/rhscl/rh-postgresql94/epel-7-x86_64/download/rhscl-rh-postgresql94-epel-7-x86_64.noarch.rpm state=present
+# postgresql94のインストール
+- name: install rh-postgresql94-postgresql-server
+  yum: name={{ item }} state=present
+  with_items:
+    - rh-postgresql94
+    - rh-postgresql94-postgresql-server
+    - rh-postgresql94-postgresql-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+- name: copy rh-postgresql94-postgresql.service
+  template: src=rh-postgresql94-postgresql.service.j2 dest=/usr/lib/systemd/system/rh-postgresql94-postgresql.service owner=root group=root mode=0644
+# 自動起動の設定
+- name: enable rh-postgresql94-postgresql
+  service: name=rh-postgresql94-postgresql enabled=yes
+# 設定済みかの確認
+- name: check postgresql.conf
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
+  register: is_initialized
+  ignore_errors: true
+# 初期化
+- name: initdb
+  command: su postgres -c "/opt/rh/rh-postgresql94/root/bin/initdb --no-locale --encoding=UTF8 -D {{ dbroot }}/data"
+  when: is_initialized|failed
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf
+  when: is_initialized|failed
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
+  notify: restart rh-postgresql94-postgresql
+# サービス起動
+- name: start rh-postgresql94-postgresql
+  service: name=rh-postgresql94-postgresql state=started
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: scl enable rh-postgresql94 "/opt/rh/rh-postgresql94/root/bin/psql -U postgres -c \"ALTER USER postgres with unencrypted password 'postgres';\""
+  when: is_initialized|failed

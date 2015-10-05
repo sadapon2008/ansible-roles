@@ -1,0 +1,50 @@
+# It's not recommended to modify this file in-place, because it will be
+# overwritten during package upgrades.  It is recommended to use systemd
+# "dropin" feature;  i.e. create file with suffix .conf under
+# /etc/systemd/system/UNITNAME.service.d directory overriding the
+# unit's defaults.  Look at systemd.unit(5) manual page for more info.
+
+[Unit]
+Description=PostgreSQL database server
+After=network.target
+
+[Service]
+Type=forking
+
+User=postgres
+Group=postgres
+
+# Where to send early-startup messages from the server (before the logging
+# options of postgresql.conf take effect)
+# This is normally controlled by the global default set by systemd
+# StandardOutput=syslog
+
+# Disable OOM kill on the postmaster
+OOMScoreAdjust=-1000
+# ... but allow it still to be effective for child processes
+# (note that these settings are ignored by Postgres releases before 9.5)
+Environment=PG_OOM_ADJUST_FILE=/proc/self/oom_score_adj
+Environment=PG_OOM_ADJUST_VALUE=0
+
+# Maximum number of seconds pg_ctl will wait for postgres to start.  Note that
+# PGSTARTTIMEOUT should be less than TimeoutSec value.
+Environment=PGSTARTTIMEOUT=270
+
+Environment=PGDATA={{ dbroot }}/data
+
+ExecStartPre=/opt/rh/rh-postgresql94/root/usr/libexec/postgresql-check-db-dir %N
+
+# Use convenient postgresql-ctl wrapper instead of directly pg_ctl.  See the
+# postgresql-ctl file itself for more info.
+
+ExecStart=/opt/rh/rh-postgresql94/root/usr/libexec/postgresql-ctl start -D ${PGDATA} -s -w -t ${PGSTARTTIMEOUT}
+ExecStop=/opt/rh/rh-postgresql94/root/usr/libexec/postgresql-ctl stop -D ${PGDATA} -s -m fast
+ExecReload=/opt/rh/rh-postgresql94/root/usr/libexec/postgresql-ctl reload -D ${PGDATA} -s
+
+# Give a reasonable amount of time for the server to start up/shut down.
+# Ideally, the timeout for starting PostgreSQL server should be handled more
+# nicely by pg_ctl in ExecStart, so keep its timeout smaller than this value.
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
