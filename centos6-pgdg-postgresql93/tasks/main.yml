@@ -3,7 +3,7 @@
 - name: install PostgreSQL9.3 repository
   yum: name=http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm state=present
 - name: disable PostgreSQL9.3 repository
-  raw: sed -i -e 's/^enabled=1/enabled=0/g' /etc/yum.repos.d/pgdg-93-centos.repo
+  lineinfile: dest=/etc/yum.repos.d/pgdg-93-centos.repo regexp='^enabled=1' line='enabled=0' state=present
 # postgresql93のインストール
 - name: install postgresql93
   yum: name={{ item }} enablerepo=pgdg93 state=latest
@@ -18,8 +18,8 @@
 - name: make directory for dbroot 3
   file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
 # PGDATAとPGLOGの設定
-- name: create /etc/sysconfig/pgsql/postgresql
-  template: src=postgresql.j2 dest=/etc/sysconfig/pgsql/postgresql owner=root group=root
+- name: create /etc/sysconfig/pgsql/postgresql-9.3
+  template: src=postgresql-9.3.j2 dest=/etc/sysconfig/pgsql/postgresql-9.3 owner=root group=root
 # 自動起動の設定
 - name: enable postgresql93
   service: name=postgresql-9.3 enabled=yes
@@ -37,7 +37,7 @@
   when: result|failed
 - name: config postgresql.conf
   copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
-  when: result|failed
+  notify: restart postgresql93
 # サービス起動
 - name: start postgresql93
   service: name=postgresql-9.3 state=started
