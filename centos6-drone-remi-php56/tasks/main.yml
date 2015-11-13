@@ -1,0 +1,30 @@
+---
+# remiのリポジトリをインストール
+- name: install remi repository
+  yum: name=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm state=present
+# php56のインストール
+- name: install php56
+  yum: name={{ item }} enablerepo=remi,remi-php56 state=present
+  with_items:
+  - php56-php
+  - php56-php-pear
+  - php56-php-devel
+  - php56-php-xml
+  - php56-php-mbstring
+  - php56-php-gd
+  - php56-php-pgsql
+  - php56-php-mysqlnd
+  - php56-php-mcrypt
+  - php56-php-intl
+  - php56-php-opcache
+  - php56-php-pdo
+  - php56-php-pecl-xdebug
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP
+  copy: src=99-my.ini dest=/opt/remi/php56/root/etc/php.d/99-my.ini
+# ここまで https://gist.github.com/debility/8838906 を反映
+- name: config OPCache
+  lineinfile: dest=/opt/remi/php56/root/etc/php.d/10-opcache.ini regexp="opcache\.enable_cli=" line="opcache.enable_cli=1"
+# ログイン時に有効化する
+- name: config for login
+  copy: src=enablephp56.sh dest=/etc/profile.d/enablephp56.sh mode=0644
