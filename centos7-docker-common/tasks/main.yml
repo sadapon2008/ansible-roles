@@ -5,8 +5,6 @@
   command: timedatectl set-timezone Asia/Tokyo
 - name: reinstall glibc-common
   command: yum -y reinstall glibc-common
-- name: restart rsyslog
-  service: name=rsyslog state=restarted
 # groupを追加
 - name: groupadd main_username
   group: >
