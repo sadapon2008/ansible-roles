@@ -25,7 +25,7 @@
   ignore_errors: true
 # 初期化
 - name: initdb
-  command: sudo -i -u postgres /usr/bin/initdb --no-locale -D {{ dbroot }}/data -E UTF8
+  command: su postgres -c "/usr/bin/initdb --no-locale -D {{ dbroot }}/data -E UTF8"
   when: result|failed
 - name: config pg_hba.conf
   template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf owner=postgres group=postgres
