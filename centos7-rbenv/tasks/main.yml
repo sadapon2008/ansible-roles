@@ -1,0 +1,35 @@
+---
+- name: install git gcc gcc-c++ openssl-devel readline-devel make
+  yum: >
+    name={{ item }}
+    state=present
+  with_items:
+    - git
+    - gcc
+    - gcc-c++
+    - openssl-devel
+    - readline-devel
+    - make
+- name: git clone https://github.com/sstephenson/rbenv.git
+  git: >
+    repo=https://github.com/sstephenson/rbenv.git
+    dest=/usr/local/rbenv
+    update=no
+- name: git clone https://github.com/sstephenson/ruby-build.git
+  git: >
+    repo=https://github.com/sstephenson/ruby-build.git
+    dest=/usr/local/rbenv/plugins/ruby-build
+    update=no
+- name: copy rbenv.sh
+  copy: >
+    src=rbenv.sh
+    dest=/etc/profile.d/rbenv.sh
+    owner=root
+    group=root
+    mode=0755
+- name: rbenv install
+  shell: rbenv install -s {{ ruby_version }}
+- name: rbenv global; rbenv rehash
+  shell: rbenv global {{ ruby_version }}; rbenv rehash
+- name: gem install bundler
+  shell: gem install bundler --no-ri --no-rdoc
