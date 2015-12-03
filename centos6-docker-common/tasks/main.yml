@@ -44,3 +44,5 @@
     - man
     - git-svn
     - nkf
+    - tar
+    - gzip
