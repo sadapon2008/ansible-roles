@@ -31,3 +31,5 @@
     - wget
     - man
     - git-svn
+    - tar
+    - gzip
