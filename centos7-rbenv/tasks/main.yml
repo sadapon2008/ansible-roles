@@ -1,5 +1,5 @@
 ---
-- name: install git gcc gcc-c++ openssl-devel readline-devel make
+- name: install git gcc gcc-c++ openssl-devel readline-devel make sqlite sqlite-devel
   yum: >
     name={{ item }}
     state=present
