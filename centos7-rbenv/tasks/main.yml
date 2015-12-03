@@ -10,6 +10,8 @@
     - openssl-devel
     - readline-devel
     - make
+    - sqlite
+    - sqlite-devel
 - name: git clone https://github.com/sstephenson/rbenv.git
   git: >
     repo=https://github.com/sstephenson/rbenv.git
