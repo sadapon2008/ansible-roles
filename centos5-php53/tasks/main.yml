@@ -29,15 +29,19 @@
 # pearの設定
 - name: install php-pear
   yum: name=php-pear state=present
+- name: pear channel-update pear.php.net
+  shell: pear channel-update pear.php.net
 - name: upgrade php-pear 1
   shell: pear upgrade --force Archive_Tar
 - name: upgrade php-pear 2
   shell: pear upgrade --force Console_Getopt
 - name: upgrade php-pear 3
-  shell: pear upgrade PEAR
+  shell: (pear list|grep -q '^PEAR\s*1\.9\.5') || pear upgrade PEAR-1.9.5
 # acpの設定
 - name: pecl channel-update pecl.php.net
   shell: pecl channel-update pecl.php.net
+- name: install pcre-devel
+  yum: name=pcre-devel state=present
 - name: pecl install apc
   shell: pecl list apc || (printf "\n" | pecl install apc)
 - name: copy apc.ini
