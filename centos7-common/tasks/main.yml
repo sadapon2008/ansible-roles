@@ -5,6 +5,8 @@
 # パッケージを更新
 - name: yum update
   command: yum -y update
+- name: yum install libselinux-python
+  yum: name=libselinux-python state=present
 # SELinuxをオフに
 - name: disable selinux 1
   selinux: state=disabled
