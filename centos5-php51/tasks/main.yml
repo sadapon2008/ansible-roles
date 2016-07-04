@@ -1,0 +1,55 @@
+---
+# EPELをインストール
+- name: import EPEL key
+  rpm_key: key="http://ftp.riken.jp/Linux/fedora/epel/RPM-GPG-KEY-EPEL-5" state=present
+- name: install EPEL
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-5.noarch.rpm" state=present
+# phpのインストール
+- name: install php
+  yum: name={{ item }} state=present
+  with_items:
+  - php
+  - php-devel
+  - php-xml
+  - php-mbstring
+  - php-pgsql
+  - php-gd
+  - php-mysql
+  - php-mcrypt
+  - php-pdo
+# ここから https://gist.github.com/debility/8838906 を反映
+- name: config PHP 1
+  copy: src=my.ini dest=/etc/php.d/my.ini owner=root group=root
+  notify: restart httpd
+# ここまで https://gist.github.com/debility/8838906 を反映
+- name: config PHP 2
+  copy: src=timezone.ini dest=/etc/php.d/timezone.ini owner=root group=root
+  notify: restart httpd
+# pearの設定
+- name: install php-pear
+  yum: name=php-pear state=present
+- name: pear channel-update pear.php.net
+  shell: pear channel-update pear.php.net
+- name: upgrade php-pear 1
+  shell: pear upgrade --force Archive_Tar
+- name: upgrade php-pear 2
+  shell: pear upgrade --force Console_Getopt
+- name: upgrade php-pear 3
+  shell: pear list|grep ^PEAR|grep -q 1.9.5
+  register: result
+  ignore_errors: true
+- name: upgrade php-pear 4
+  shell: pear upgrade PEAR-1.9.5
+  when: result|failed
+# acpの設定
+- name: pecl channel-update pecl.php.net
+  shell: pecl channel-update pecl.php.net
+- name: install pcre-devel
+  yum: name=pcre-devel state=present
+- name: modify /usr/share/pear/pearcmd.php
+  lineinfile: dest=/usr/share/pear/pearcmd.php insertafter='^<\?php.*$' regexp='memory_limit' line='@ini_set("memory_limit", "32M");'
+- name: pecl install apc
+  shell: pecl list apc || (printf "\n" | pecl install apc)
+- name: copy apc.ini
+  copy: src=apc.ini dest=/etc/php.d/apc.ini owner=root group=root
+  notify: restart httpd
