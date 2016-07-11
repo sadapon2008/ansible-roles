@@ -2,9 +2,11 @@
 # userを追加
 - name: useradd main_username
   user: name={{ main_username }} password={{ main_password }}
+  when: main_user_flag == true
 # パッケージを更新
 - name: yum update
   command: yum -y update
+  when: yum_update_flag == true
 # SELinuxの設定用のパッケージを追加
 - name: install libselinux-python
   yum: name=libselinux-python state=present

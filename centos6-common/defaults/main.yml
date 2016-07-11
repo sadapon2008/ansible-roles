@@ -1,5 +1,9 @@
 ---
+# ユーザを追加するかのフラグ
+main_user_flag: true
 # 追加するユーザ名
 main_username: username
 # 追加するユーザのパスワード
 main_password: password
+# yum updateを行うかのフラグ
+yum_update_flag: true
