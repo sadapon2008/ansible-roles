@@ -1,0 +1,3 @@
+---
+dbroot: /var/lib/pgsql
+permit_network: 10.0.0.0/8
