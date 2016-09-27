@@ -10,11 +10,14 @@
 # SELinuxの設定用のパッケージを追加
 - name: install libselinux-python
   yum: name=libselinux-python state=present
+  when: selinux_flag == true
 # SELinuxをオフに
 - name: disable selinux 1
   selinux: state=disabled
+  when: selinux_flag == true
 - name: disable selinux 2
   shell: if [ "`/usr/sbin/getenforce`" != "Disabled" ]; then /usr/sbin/setenforce 0; fi
+  when: selinux_flag == true
 # 不要なサービスの停止と自動起動をオフに
 - name: stop services
   service: name={{ item }} state=stopped
@@ -51,6 +54,7 @@
   command: /usr/sbin/ntpdate ntp.nict.jp
 - name: sync hwclock
   command: /sbin/hwclock -w
+  when: hwclock_flag == true
 - name: start ntpd
   service: name=ntpd state=started
 # 色々パッケージを追加
