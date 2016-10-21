@@ -19,6 +19,7 @@
   - php70-php-opcache
   - php70-php-pdo
   - php70-php-json
+  - php70-php-pecl-zip
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP
   copy: src=99-my.ini dest=/etc/opt/remi/php70/php.d/99-my.ini
