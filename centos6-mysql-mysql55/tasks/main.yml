@@ -44,9 +44,9 @@
 # 初期化
 # rootユーザのパスワード初期化
 - name: config root password
-  command: /usr/bin/mysqladmin -u root 'root'
+  command: /usr/bin/mysqladmin -u root password 'root'
   when: result|failed
 # ネットワークのアクセス制限を設定する
 - name: config permit network
-  command: /usr/bin/mysql -uroot -proot password -e "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" mysql
+  command: /usr/bin/mysql -uroot -proot -e "grant all privileges on *.* to root@\"{{ permit_network }}\" identified by 'root' with grant option; flush privileges;" mysql
   when: result|failed
