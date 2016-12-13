@@ -1,0 +1,47 @@
+---
+# PostgreSQL9.5のリポジトリをインストール
+- name: install PostgreSQL9.5 repository
+  yum: name=https://yum.postgresql.org/9.5/redhat/rhel-6-x86_64/pgdg-centos95-9.5-3.noarch.rpm state=present
+- name: disable PostgreSQL9.5 repository
+  lineinfile: dest=/etc/yum.repos.d/pgdg-95-centos.repo regexp='^enabled=' line='enabled=0' state=present
+# postgresql95のインストール
+- name: install postgresql95
+  yum: name={{ item }} enablerepo=pgdg95 state=present
+  with_items:
+  - postgresql95-server
+  - postgresql95-contrib
+# データディレクトリを準備
+- name: make directory for dbroot 1
+  file: path={{ dbroot }} state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 2
+  file: path={{ dbroot }}/data state=directory owner=postgres group=postgres mode=700
+- name: make directory for dbroot 3
+  file: path={{ dbroot }}/backups state=directory owner=postgres group=postgres mode=700
+# PGDATAとPGLOGの設定
+- name: create /etc/sysconfig/pgsql/postgresql-9.5
+  template: src=postgresql-9.5.j2 dest=/etc/sysconfig/pgsql/postgresql-9.5 owner=root group=root
+# 自動起動の設定
+- name: enable postgresql95
+  service: name=postgresql-9.5 enabled=yes
+# 設定済みかの確認
+- name: check postgresql.conf
+  command: test -f "{{ dbroot }}/data/postgresql.conf"
+  register: is_initialized
+  ignore_errors: true
+# 初期化
+- name: initdb
+  command: su postgres -c "/usr/pgsql-9.5/bin/initdb --no-locale --encoding=UTF8 -D {{ dbroot }}/data"
+  when: is_initialized|failed
+- name: config pg_hba.conf
+  template: src=pg_hba.conf.j2 dest={{ dbroot }}/data/pg_hba.conf
+  when: is_initialized|failed
+- name: config postgresql.conf
+  copy: src=postgresql.conf dest={{ dbroot }}/data/postgresql.conf
+  notify: restart postgresql95
+# サービス起動
+- name: start postgresql95
+  service: name=postgresql-9.5 state=started
+# postgresユーザのパスワード初期化
+- name: config postgres password
+  command: sudo -u postgres /usr/bin/psql -U postgres -c "ALTER USER postgres with unencrypted password 'postgres';"
+  when: is_initialized|failed
