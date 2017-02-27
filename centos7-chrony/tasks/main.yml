@@ -1,0 +1,19 @@
+---
+# ntpをインストール
+- name: install chrony
+  yum: name=chrony state=present
+- name: enable chrony
+  service: name=chronyd enabled=yes
+- name: stop chronyd
+  service: name=chronyd state=stopped
+- name: change chrony.conf
+  copy: src=chrony.conf dest=/etc/chrony.conf owner=root group=root
+- name: install ntpdate
+  yum: name=ntpdate state=present
+- name: ntpdate ntp.nict.jp
+  command: /usr/sbin/ntpdate ntp.nict.jp
+- name: hwclock -w
+  command: /usr/sbin/hwclock -w
+  when: centos7_chrony_hwclock_flag == true
+- name: start chronyd
+  service: name=chronyd state=started

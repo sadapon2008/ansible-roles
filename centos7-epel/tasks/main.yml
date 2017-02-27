@@ -1,0 +1,4 @@
+---
+# EPELをインストール
+- name: install EPEL
+  yum: name=epel-release state=present

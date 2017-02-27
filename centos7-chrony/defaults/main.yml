@@ -1,0 +1,3 @@
+---
+# hwclockの設定を行うかのフラグ
+centos7_chrony_hwclock_flag: true

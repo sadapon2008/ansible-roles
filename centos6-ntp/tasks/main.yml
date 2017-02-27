@@ -1,0 +1,17 @@
+---
+# ntpをインストール
+- name: install ntp
+  yum: name=ntp state=present
+- name: enable ntp
+  service: name=ntpd enabled=yes
+- name: stop ntpd
+  service: name=ntpd state=stopped
+- name: change ntp.conf
+  copy: src=ntp.conf dest=/etc/ntp.conf owner=root group=root
+- name: sync ntp.nict.jp
+  command: /usr/sbin/ntpdate ntp.nict.jp
+- name: sync hwclock
+  command: /sbin/hwclock -w
+  when: centos6_ntp_hwclock_flag == true
+- name: start ntpd
+  service: name=ntpd state=started

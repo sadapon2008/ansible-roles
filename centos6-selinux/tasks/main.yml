@@ -1,0 +1,9 @@
+---
+# SELinuxの設定用のパッケージを追加
+- name: install libselinux-python
+  yum: name=libselinux-python state=present
+# SELinuxをオフに
+- name: disable selinux 1
+  selinux: state=disabled
+- name: disable selinux 2
+  shell: if [ "`/usr/sbin/getenforce`" != "Disabled" ]; then /usr/sbin/setenforce 0; fi
