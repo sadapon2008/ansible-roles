@@ -1,0 +1,29 @@
+---
+- name: stop firewalld
+  service: name=firewalld state=stopped
+- name: disable firewalld
+  service: name=firewalld enabled=no
+- name: install iptables-services
+  yum: name=iptables-services state=present
+- name: enable iptables
+  service: name=iptables enabled=yes
+- name: start iptables
+  service: name=iptables state=started
+- name: install yum-utils
+  yum: name=yum-utils state=present
+- name: yum-config-manager --add-repo
+  command: /usr/bin/yum-config-manager --add-repo https://docs.docker.com/engine/installation/linux/repo_files/centos/docker.repo
+- name: yum makecache fast
+  command: /usr/bin/yum makecache fast
+- name: install docker-engine
+  yum: name=docker-engine state=present
+- name: mkdir /etc/systemd/system/docker.service.d
+  file: path=/etc/systemd/system/docker.service.d state=directory owner=root group=root mode=0755
+- name: copy override.conf
+  copy: src=override.conf dest=/etc/systemd/system/docker.service.d/override.conf owner=root group=root
+- name: systemctl daemon-reload
+  command: /usr/bin/systemctl daemon-reload
+- name: enable docker
+  service: name=docker enabled=yes
+- name: start docker
+  service: name=firewalld state=started

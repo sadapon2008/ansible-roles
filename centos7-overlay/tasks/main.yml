@@ -1,0 +1,3 @@
+---
+- name: copy overlar.conf
+  copy: src=overlay.conf dest=/etc/modules-load.d/overlay.conf owner=root group=root
