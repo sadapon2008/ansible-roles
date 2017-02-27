@@ -1,0 +1,3 @@
+---
+# hwclockの設定を行うかのフラグ
+centos6_ntp_hwclock_flag: true

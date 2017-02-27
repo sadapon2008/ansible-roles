@@ -1,0 +1,16 @@
+---
+# 不要なサービスの停止と自動起動をオフに
+- name: stop services
+  service: name={{ item }} state=stopped
+  with_items:
+    - avahi-daemon
+    - firewalld
+    - postfix
+  ignore_errors: true
+- name: disable services
+  service: name={{ item }} enabled=no
+  with_items:
+    - avahi-daemon
+    - firewalld
+    - postfix
+  ignore_errors: true

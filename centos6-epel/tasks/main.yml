@@ -1,0 +1,4 @@
+---
+# EPELをインストール
+- name: install EPEL
+  yum: name="http://ftp.riken.jp/Linux/fedora/epel/epel-release-latest-6.noarch.rpm" state=present
