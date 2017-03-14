@@ -1,0 +1,14 @@
+---
+- name: install cronie cronie-anacron crontabs
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - cronie
+    - cronie-anacron
+    - crontabs
+- name: enable and start cron
+  service:
+    name: crond
+    state: started
+    enabled: yes
