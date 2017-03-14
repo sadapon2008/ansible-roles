@@ -1,7 +1,10 @@
 ---
 # ドキュメントルート
-docroot: /var/www/html/htdocs
+centos6_apache_docroot: /var/www/html
 # ドキュメントルートの所有ユーザ名
-main_username: username
+centos6_apache_docroot_user: root
+centos6_apache_docroot_group: root
 # 環境変数CAKE_ENV_MODEの設定値
-cake_env_mode: development
+centos6_apache_cake_env_mode: development
+# Keepaliveの設定フラグ
+centos6_apache_keepalive_flag: false

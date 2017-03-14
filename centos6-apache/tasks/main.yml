@@ -1,47 +1,77 @@
 ---
 # apacheをインストール
 - name: install httpd
-  yum: name={{ item }} state=present
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
     - httpd
     - httpd-devel
     - mod_ssl
 # docrootのディレクトリを作成
-- name: mkdir docroot
-  file: path={{ docroot }} state=directory owner={{ main_username }} group={{ main_username }}
+- name: check docroot
+  file:
+    path: "{{ centos6_apache_docroot }}"
+    state: directory
+    owner: "{{ centos6_apache_docroot_user }}"
+    group: "{{ centos6_apache_docroot_group }}"
+- name: copy /etc/httpd/conf/httpd.conf
+  template:
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
 # ssl.confのVirtualHostの設定を削除する
-- name: change ssl.conf
-  raw: sed -i -e '/^\s*<VirtualHost _default_:443>/,/^\s*<\/VirtualHost>/s/^/#/' /etc/httpd/conf.d/ssl.conf
+- name: copy /etc/httpd/conf.d/ssl.conf
+  copy:
+    src: ssl.conf
+    dest: /etc/httpd/conf.d/ssl.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
+- name: copy /etc/httpd/conf.d/notrace.conf
+  copy:
+    src: notrace.conf
+    dest: /etc/httpd/conf.d/notrace.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
+- name: copy /etc/httpd/conf.d/hide_files.conf
+  copy:
+    src: hide_files.conf
+    dest: /etc/httpd/conf.d/hide_files.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
 # VirtualHostの設定
-- name: change virtualhosts.conf
-  template: src=virtualhosts.conf.j2 dest=/etc/httpd/conf.d/virtualhosts.conf owner=root group=root
-# ここから https://gist.github.com/debility/8838906 を反映
-- name: change httpd.conf 1
-  raw: sed -i
-           -e 's/Options Indexes FollowSymLinks/Options FollowSymLinks/'
-           -e 's/ServerTokens OS/ServerTokens Prod/'
-           -e 's/ServerSignature On/ServerSignature Off/'
-           -e '/^Alias \/icons/s/^/#/'
-           -e '/^Alias \/error/s/^/#/'
-           -e '/^ScriptAlias \/cgi-bin/s/^/#/'
-           -e '/^\s*<Directory "\/var\/www\/icons">/,/^\s*<\/Directory>/s/^/#/'
-           -e '/^\s*<Directory "\/var\/www\/cgi-bin">/,/^\s*<\/Directory>/s/^/#/'
-           -e '/^\s*<Directory "\/var\/www\/error">/,/^\s*<\/Directory>/s/^/#/'
-           /etc/httpd/conf/httpd.conf
-- name: change httpd.conf 2
-  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^TraceEnable Off" line="TraceEnable Off"
-- name: disable welcome.conf
-  shell: if [ -f "/etc/httpd/conf.d/welcome.conf" ]; then mv -f /etc/httpd/conf.d/welcome.conf /etc/httpd/conf.d/welcome.conf.orig; fi
-# ここまで https://gist.github.com/debility/8838906 を反映
-- name: change httpd.conf 3
-  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^AddDefaultCharset " line="AddDefaultCharset off"
-# .svn などの隠ぺいの設定
-- name: setting hide_files
-  copy: src=hide_files.conf dest=/etc/httpd/conf.d/hide_files.conf
-- name: enable httpd
-  service: name=httpd enabled=yes
-- name: start httpd
-  service: name=httpd state=started
-# main_usernameのユーザシェルの環境変数を設定
-- name: environmental variable CAKE_ENV_MODE for main_username
-  lineinfile: dest=/home/{{ main_username }}/.bashrc regexp="^CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE$" line="CAKE_ENV_MODE={{ cake_env_mode }}; export CAKE_ENV_MODE"
+- name: copy /etc/httpd/conf.d/virtualhosts.conf
+  template:
+    src: virtualhosts.conf.j2
+    dest: /etc/httpd/conf.d/virtualhosts.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
+- name: start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+# CAKE_ENV_MODEの環境変数を設定
+- name: copy /etc/profile.d/cake_env_mode.sh
+  template:
+    src: cake_env_mode.sh.j2
+    dest: /etc/profile.d/cake_env_mode.sh
+    owner: root
+    group: root
+    mode: 0644
