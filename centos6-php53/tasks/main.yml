@@ -1,28 +1,55 @@
 ---
 # EPELをインストール
 - name: install EPEL
-  yum: name="http://ftp.riken.jp/Linux/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm" state=installed
+  yum:
+    name: epel-release
+    state: present
 # phpのインストール
 - name: install php
-  yum: name={{ item }} state=present
+  yum:
+    name: "{{ item }}"
+    state: present
   with_items:
-  - php
-  - php-pear
-  - php-devel
-  - php-xml
-  - php-mbstring
-  - php-pgsql
-  - php-gd
-  - php-mysql
-  - php-pecl-apc
-  - php-mcrypt
+    - php
+    - php-pear
+    - php-devel
+    - php-xml
+    - php-mbstring
+    - php-pgsql
+    - php-gd
+    - php-mysql
+    - php-pecl-apc
+    - php-mcrypt
+    - php-pdo
+    - php-soap
+  notify:
+    - restart httpd
 # ここから https://gist.github.com/debility/8838906 を反映
 - name: config PHP 1
-  copy: src=my.ini dest=/etc/php.d/my.ini owner=root group=root
+  copy:
+    src: my.ini
+    dest: /etc/php.d/my.ini
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
 # ここまで https://gist.github.com/debility/8838906 を反映
 - name: config PHP 2
-  copy: src=timezone.ini dest=/etc/php.d/timezone.ini owner=root group=root
+  copy:
+    src: timezone.ini
+    dest: /etc/php.d/timezone.ini
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
 - name: config PHP 3
-  copy: src=php.conf dest=/etc/httpd/conf.d/php.conf owner=root group=root
-- name: restart httpd
-  service: name=httpd state=restarted
+  copy:
+    src: php.conf
+    dest: /etc/httpd/conf.d/php.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd

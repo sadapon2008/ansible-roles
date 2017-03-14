@@ -15,6 +15,15 @@
     state: directory
     owner: "{{ centos6_apache_docroot_user }}"
     group: "{{ centos6_apache_docroot_group }}"
+- name: copy /etc/sysconfig/httpd
+  copy:
+    src: httpd
+    dest: /etc/sysconfig/httpd
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart httpd
 - name: copy /etc/httpd/conf/httpd.conf
   template:
     src: httpd.conf.j2
