@@ -1,0 +1,28 @@
+---
+# 参考にした情報：http://knowledge.sakura.ad.jp/beginner/4048/
+- name: copy /etc/sysconfig/iptables
+  template:
+    src: iptables.j2
+    dest: /etc/sysconfig/iptables
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - restart iptables
+- name: copy /etc/sysconfig/ip6tables
+  copy:
+    src: ip6tables
+    dest: /etc/sysconfig/ip6tables
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - restart ip6tables
+- name: chkconfig on and start
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - iptables
+    - ip6tables
