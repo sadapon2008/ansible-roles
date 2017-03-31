@@ -1,0 +1,4 @@
+---
+centos7_remi_php70_enable_apcu: false
+centos7_remi_php70_enable_litespeed: false
+centos7_remi_php70_enable_fpm: false

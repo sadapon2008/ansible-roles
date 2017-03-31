@@ -1,0 +1,13 @@
+---
+- name: install epel
+  yum:
+    name: epel-release
+    state: present
+- name: install repo
+  yum:
+    name: http://rpms.litespeedtech.com/centos/litespeed-repo-1.1-1.el7.noarch.rpm
+    state: present
+- name: install openlitespeed
+  yum:
+    name: openlitespeed
+    state: present
