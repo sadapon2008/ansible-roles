@@ -27,6 +27,7 @@
     browseable = no
     writable = yes
 
+{% if docroot_flag %}
 [docroot]
     comment = DocumentRoot Directory
     path = {{ docroot }}
@@ -38,3 +39,4 @@
     directory mask = 0775
     force create mode = 0664
     force directory mode = 0775
+{% endif %}
