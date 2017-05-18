@@ -1,0 +1,7 @@
+---
+- name: execute https://rpm.nodesource.com/setup_6.x
+  shell: curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+- name: install nodejs
+  yum:
+    name: nodejs
+    state: present
