@@ -1,0 +1,52 @@
+---
+- name: remove mariadb-libs
+  yum:
+    name: mariadb-libs
+    state: absent
+- name: install mysql57-community-release-el7-11.noarch.rpm
+  yum:
+    name: https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
+    state: present
+- name: install yum-utils
+  yum:
+    name: yum-utils
+    state: present
+- name: disable mysql57-community
+  command: yum-config-manager --disable mysql57-community
+- name: enable mysql56-community
+  command: yum-config-manager --enable mysql56-community
+- name: install mysql-community-server
+  yum:
+    name: mysql-community-server
+    state: present
+- name: make directory for dbroot
+  file:
+    path: "{{ sadapon2008_centos7_mysql_mysql56_dbroot }}"
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: 0755
+- name: copy my.cnf
+  template:
+    src: my.cnf.j2
+    dest: /etc/my.cnf
+    owner: root
+    group: root
+- name: enable mysqld
+  service:
+    name: mysqld
+    enabled: yes
+- name: check datadir
+  command: test -f "{{ sadapon2008_centos7_mysql_mysql56_dbroot }}/ib_logfile0"
+  register: result
+  ignore_errors: true
+- name: start mysqld
+  service:
+    name: mysqld
+    state: started
+- name: config root password
+  command: /usr/bin/mysqladmin -u root password 'root'
+  when: result|failed
+- name: config allowed network
+  command: /usr/bin/mysql -uroot -proot -e "grant all privileges on *.* to root@\"{{ sadapon2008_centos7_mysql_mysql56_allowed_network }}\" identified by 'root' with grant option; flush privileges;" mysql
+  when: result|failed
